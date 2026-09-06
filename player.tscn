@@ -59,6 +59,14 @@ radius = 11.0
 [node name="Player" type="CharacterBody2D" unique_id=1772870386]
 script = ExtResource("1_onrkg")
 
+[node name="Line2D" type="Line2D" parent="." unique_id=488148858]
+points = PackedVector2Array(0, 0)
+width = 4.0
+default_color = Color(0.24470726, 0.11225846, 0.075150855, 1)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+
 [node name="GPUParticles2D" type="GPUParticles2D" parent="." unique_id=1437959080]
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1326473061]
@@ -68,3 +76,5 @@ frame_progress = 0.057345476
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=537927872]
 shape = SubResource("CircleShape2D_gmrs5")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=435889818]
