@@ -78,3 +78,4 @@ frame_progress = 0.057345476
 shape = SubResource("CircleShape2D_gmrs5")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=435889818]
+zoom = Vector2(0.87, 0.87)

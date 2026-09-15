@@ -3,17 +3,20 @@ extends CharacterBody2D
 enum State {FREE, ATTACHED}
 
 const SPEED = 100.0
-const JUMP_VELOCITY = -300.0
+const JUMP_VELOCITY = -250.0
 const MAX_GRAPPLE_RANGE = 180
 const ALIGNMENT_THRESHOLD = 0.7
 const DISTANCE_WEIGHT = 0.3
 const GRAPPLE_NUDGE_SPEED = 150
-const GRAVITY = 1000.0
+const GRAVITY = 700.0
 const AIR_STEER_MULT = 1
+const REEL_SPEED = 70
+const MIN_ROPE_LENGTH = 40
 
 var state := State.FREE
 var attached_point: Node2D
 var rope_length: float
+var after_grapple := false
 
 func get_grapple_point() -> Node2D:
 	var points: Array[Node] = get_tree().get_nodes_in_group("attachable")
@@ -45,13 +48,15 @@ func _physics_process(delta: float) -> void:
 			(attached_point.get_node("Icon") as Sprite2D).modulate = Color("red")
 			rope_length = position.distance_to(attached_point.position)
 	elif Input.is_action_just_released("grapple"):
+		after_grapple = true
 		if attached_point:
 			(attached_point.get_node("Icon") as Sprite2D).modulate = Color(1,1,1,1)
 		attached_point = null
 		rope_length = 0
 	
 	if Input.is_action_pressed("grapple"):
-		state = State.ATTACHED
+		if attached_point != null:
+			state = State.ATTACHED
 		if (len($Line2D.points) > 1):
 			$Line2D.remove_point(1)
 		if attached_point:
@@ -63,11 +68,14 @@ func _physics_process(delta: float) -> void:
 		state = State.FREE
 		attached_point = null
 		
+	if is_on_floor() and after_grapple:
+		after_grapple = false
 	
+	print(after_grapple)
 	
 	if state == State.FREE:
 		# In the air:
-		if not is_on_floor():
+		if not is_on_floor() and after_grapple:
 			velocity += Vector2.DOWN * GRAVITY * delta
 			
 			var direction := Input.get_axis("left", "right")
@@ -75,6 +83,17 @@ func _physics_process(delta: float) -> void:
 			if direction:
 				if velocity.x * direction <= SPEED:
 					velocity.x = move_toward(velocity.x, SPEED * direction, SPEED * AIR_STEER_MULT * delta)
+			
+			move_and_slide()
+		elif not is_on_floor():
+			velocity += Vector2.DOWN * GRAVITY * delta
+			
+			var direction := Input.get_axis("left", "right")
+			
+			if direction:
+				velocity.x = direction * SPEED
+			else:
+				velocity.x = move_toward(velocity.x, 0, SPEED)
 			
 			move_and_slide()
 		# On the ground.
@@ -96,6 +115,9 @@ func _physics_process(delta: float) -> void:
 	if state == State.ATTACHED:
 		if not is_on_floor():
 			velocity += Vector2.DOWN * GRAVITY * delta
+			
+		if Input.is_action_pressed("jump"): # reel in if so
+			rope_length = max(MIN_ROPE_LENGTH, rope_length - REEL_SPEED * delta)
 
 		var input_direction := Input.get_axis("left", "right")
 		var forwards_on_circle = (attached_point.position - position).rotated(deg_to_rad(90)).normalized()
