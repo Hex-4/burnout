@@ -42,8 +42,15 @@ func get_grapple_point() -> Node2D:
 		return null  
 	
 func _physics_process(delta: float) -> void:
+	var point = get_grapple_point()
+	
+	if position.y > 250:
+		position = Vector2(155, 135)
+		attached_point = null
+		state = State.FREE
+	
 	if Input.is_action_just_pressed("grapple"):
-		attached_point = get_grapple_point()
+		attached_point = point
 		if attached_point:
 			(attached_point.get_node("Icon") as Sprite2D).modulate = Color("red")
 			rope_length = position.distance_to(attached_point.position)
@@ -71,7 +78,6 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor() and after_grapple:
 		after_grapple = false
 	
-	print(after_grapple)
 	
 	if state == State.FREE:
 		# In the air:
@@ -121,7 +127,7 @@ func _physics_process(delta: float) -> void:
 
 		var input_direction := Input.get_axis("left", "right")
 		var forwards_on_circle = (attached_point.position - position).rotated(deg_to_rad(90)).normalized()
-		print(forwards_on_circle)
+
 		velocity += input_direction * forwards_on_circle * GRAPPLE_NUDGE_SPEED * delta
 
 
